@@ -1,0 +1,320 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../paper-item/paper-icon-item.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-item/paper-item-body.html">
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-progress/paper-progress.html">
+
+<script src="../yjs/y.js"></script>
+<script src="../drag-drop/dragdrop.min.js"></script>
+<script src="../webtorrent/webtorrent.min.js"></script>
+
+<!--
+  An element to share files.
+  
+  Example:
+  ```
+    <shared-filesystem room="my-namespace"></shared-filesystem>
+  ```
+  @demo demo/index.html
+-->
+
+<dom-module id="shared-filesystem">
+  <template>
+    <style>
+      iron-icon {
+        color: grey;
+      }
+      #main {
+        position: relative;
+      }
+      #main > paper-material {
+        min-height: 400px;
+      }
+      paper-progress {
+        width: 100%;
+      }
+      div.overlay {
+        display: none;
+      }
+      #main.drag .overlay {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        display: block;
+        background-color: rgba(255, 255, 255, 0.85);
+        outline: 2px dashed black;
+        outline-offset: -10px;
+        z-index: 999;
+      }
+    </style>
+    <div id="main">
+      <paper-material elevation="2">
+        <paper-dialog id="createFolderDialog">
+          <paper-input label="Folder name"></paper-input>
+          <div class="buttons">
+            <paper-button dialog-dismiss autofocus icon="icons:cancel">Close</paper-icon-button>
+            <paper-button dialog-confirm on-tap="_createFolderDialog">Create</paper-button>
+          </div>
+        </paper-dialog>
+        <paper-toolbar>
+          <paper-icon-button on-tap="goBack" icon="icons:arrow-upward" ></paper-icon-button>
+          <div class="title"> {{ readablePath }} </div>
+          <paper-icon-button onclick="createFolderDialog.open()" icon="icons:add"></paper-icon-button>
+        </paper-toolbar>
+        <div class="files" id="files">
+          <div class="overlay"></div>
+          <template is="dom-repeat" items="{{files}}" as="file">
+            <paper-icon-item on-tap="_fileClicked">
+              <iron-icon icon="{{getFileIcon(file)}}" item-icon></iron-icon>
+              <paper-item-body>
+                <div>{{file.name}}</div>
+              </paper-item-body>
+              <!--iron-icon icon="{{getStateIcon(file)}}"></iron-icon-->
+              <iron-icon icon="icons:delete" on-tap="_deleteFile"></iron-icon>
+            </paper-icon-item>
+            <paper-progress value="{{file.progress}}" min="0" max="110"></paper-progress>
+          </template>
+        </div>
+      </paper-material>
+    </div>
+  </template>
+
+  <script>
+    var client = new WebTorrent()
+    Polymer({
+      is: 'shared-filesystem',
+
+      properties: {
+        /**
+         * `path` is the sub-folder you want to show. Defaults to '/'
+         */
+        path: {
+          type: Array,
+          value: [],
+          notify: true,
+          observer: '_updatePath'
+        },
+        /**
+         * Readable version of `path` in the form '/sub/subsub/'
+         */
+        readablePath: {
+          type: String,
+          computed: '_computeReadablePath(path)',
+          notify: true
+        },
+        /**
+         * Files in the current `path`
+         */
+        files: {
+          type: Array,
+          value: [],
+          notify: true,
+          readOnly: true
+        },
+        /**
+         * Webrtc room name (required)
+         */
+        room: String
+      },
+      _computeReadablePath: function (path) {
+        return '/' + path.join('/')
+      },
+      attached: function() {
+        if (this.room == null) {
+          throw new Error('You must specify a room property!')
+        }
+        this.$.createFolderDialog.fitInto = this.$.main
+        this.y = null
+        this.folder = null
+        this._updateFiles = this._updateFiles.bind(this)
+        this._unobservePath = Promise.resolve(function () {}) // just mocking function behavior
+        Y({
+          db: {
+            name: 'memory'
+          },
+          connector: {
+            name: 'webrtc',
+            room: this.room
+          },
+          sourceDir: '/bower_components',
+          share: {
+            root: 'Map'
+          }
+        }).then((y) => {
+          this.y = y
+          this.folder = y.share.root
+          this._updatePath()
+        })
+        this.webtorrent = new WebTorrent()
+        DragDrop('#main', (files) => {
+          files.forEach((file) => {
+            var createFile = () => {
+              console.log('Client is seeding ' + torrent.magnetURI)
+              this.createFile(file.name, torrent.magnetURI)
+            }
+            var torrent = this.webtorrent.seed(file)
+            // we don't care if its an error (there are some cases when it is expected - when a file is added twice, webtorrent won't create two duplicate torrents)
+            torrent.on('metadata', createFile)
+            var that = this
+            torrent.on('error', (err) => {
+              // I expect here that the error is something like 'Cannot add duplicate torrent 2d0e9fe2a9277b88ff9e7ddd0924fc691325a27d'
+              // Where 2d0.. is the infoHash. I think this is the only way to retrieve the non-duplicate (maybe also via torrent._debugid?)
+              var infoHash = err.message.slice(29)
+              var torrent = this.webtorrent.torrents.find(function (torrent) {
+                return torrent.infoHash === infoHash
+              })
+              if (torrent == null) {
+                throw new Error('This hack does not work anymore, implement something proper!')
+              } else {
+                console.log('Client is seeding (case 2) ' + torrent.magnetURI)
+                this.createFile(file.name, torrent.magnetURI)
+              }
+            })
+          })
+        })
+        window.setInterval(this._updateFiles, 100)
+      },
+      goBack () {
+        if (this.path.length > 0) {
+          this.path = this.path.slice(0, -1)
+        }
+      },
+      getFileIcon (file) {
+        return file.type === 'file' ? 'icons:description' : 'icons:folder'
+      },
+      getTorrent: function (magnetURI, f) {
+        return this.webtorrent.torrents.find(function (t) {
+          return t.magnetURI === magnetURI
+        })
+      },
+      _deleteFile: function (e) {
+        this.folder.delete(e.model.file.name)
+        e.preventDefault()
+        e.stopPropagation()
+      },
+      _fileClicked: function (e) {
+        var f = e.model.file
+        if (f.type === 'file') {
+          var torrent = this.getTorrent(f.val)
+          if (torrent == null) {
+            this.webtorrent.add(f.val, (torrent) => {
+              this._updateFiles()
+              torrent.files[0].getBlobURL(this._updateFiles)
+            })
+          } else if (torrent.files.length > 0) {
+            var location = torrent.files[0].getBlobURL(function (err, url) {
+              if (err == null) {
+                // window.location = url
+                console.log('got it', url)
+                var a = document.createElement('a')
+                a.setAttribute('href', url)
+                a.setAttribute('download', torrent.files[0].name)
+                document.body.appendChild(a)
+                a.click()
+                a.remove() 
+              } else {
+                console.err(err)
+              }
+            })
+          }
+        } else {
+          this.path = this.path.concat([f.name])
+        }
+      },
+      _updatePath: function () {
+        if (this.y != null) {
+          this._unobservePath.then(function (del) {del()})
+          this._unobservePath = this.y.share.root.observePath(this.path, (folder) => {
+            if (folder instanceof Y.Map.typeDefinition.class) {
+              this.folder.unobserve(this._updateFiles)
+              this.folder = folder
+              this.folder.observe(this._updateFiles)
+              this._updateFiles()
+            }
+          })
+        }
+      },
+      _updateFiles: function () {
+        if (this.y != null) {
+          Promise.all(this.folder.keys()
+            .map((key) => {
+              var val = this.folder.get(key)
+              if (val instanceof Promise) {
+                return val.then(function (val) {
+                  return Promise.resolve({
+                    name: key,
+                    val: val,
+                    type: 'folder',
+                    progress: 0
+                  })
+                }) 
+              } else {
+                var state
+                var torrent = this.getTorrent(val)
+                if (torrent == null) {
+                  state = 'off'
+                } else if (torrent.torrentFileBlobURL != null) {
+                  state = 'downloaded'
+                } else {
+                  state = 'downloading'
+                }
+                return Promise.resolve({
+                  name: key,
+                  val: val,
+                  type: 'file',
+                  progress: torrent != null ? torrent.progress * 100 + 10 : 0
+                })
+              }
+            })
+          ).then((files) => {
+            this._setFiles(files.sort(function (a, b) { return a.name > b.name }))
+          })
+        }
+      },
+      getStateIcon: function (f) {
+        if (f.type === 'file')
+        if (f.type === 'file' && f.progress < 10) {
+          return 'icons:cloud-download'
+        } else if (f.type === 'file' && f.progress === 110) {
+          return 'icons:cloud-done'
+        } else {
+          return 'icons:watch-later'
+        }
+      },
+      createFile: function (name, magnetURI) {
+        this.folder.set(name, magnetURI)
+      },
+      createFolder: function (name) {
+        if (name.length > 0) {
+          this.folder.set(name, Y.Map)
+        }
+      },
+      _createFolderDialog: function () {
+        var input = this.$.createFolderDialog.querySelector('paper-input')
+        this.createFolder(input.value)
+        input.value = ''
+      },
+    });
+  </script>
+</dom-module>
