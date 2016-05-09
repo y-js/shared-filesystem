@@ -1,61 +1,37 @@
 # shared-filesystem
 
-An element providing a starting point for your own reusable Polymer elements.
+A Polymer element that you can include in your projects to enable your users to share files.
+The cool thing: You don't need to set up anything, because everything works peer-to-peer
+(well, .. as far as something can be peer-to-peer in the web).
+The clients communicate via WebRTC. Conflicts resolved by [Yjs](https://github.com/y-js/yjs), and files
+are shared via [webtorrent](https://webtorrent.io/).
+Check out [the live demo](http://y-js.org/shared-filesystem/components/shared-filesystem/demo/),
+and read the [documentation](http://y-js.org/shared-filesystem/components/shared-filesystem/).
 
+![Shared Filesystem Demo](http://goo.gl/4XipWA)
 
-## Dependencies
+### Production use
+The shared filesystem element requires a signaling server for webrtc, and a tracking server for webtorrent.
+The tracking server is provided by the webtorrent community, so you may wanna exchange it if you want really fast access to your files.
+Furthermore, read in the [y-webrtc documentation](https://github.com/y-js/y-webrtc) on how to set up your own signaling server.
 
-Element dependencies are managed via [Bower](http://bower.io/). You can
-install that via:
+### Development
+This project was generated with [generator-polymer](https://github.com/yeoman/generator-polymer).
+Read the documentation to get started
 
-    npm install -g bower
+##### License
 
-Then, go ahead and download the element's dependencies:
-
-    bower install
-
-
-## Playing With Your Element
-
-If you wish to work on your element in isolation, we recommend that you use
-[Polyserve](https://github.com/PolymerLabs/polyserve) to keep your element's
-bower dependencies in line. You can install it via:
-
-    npm install -g polyserve
-
-And you can run it via:
-
-    polyserve
-
-Once running, you can preview your element at
-`http://localhost:8080/components/shared-filesystem/`, where `shared-filesystem` is the name of the directory containing it.
-
-
-## Testing Your Element
-
-Simply navigate to the `/test` directory of your element to run its tests. If
-you are using Polyserve: `http://localhost:8080/components/shared-filesystem/test/`
-
-### web-component-tester
-
-The tests are compatible with [web-component-tester](https://github.com/Polymer/web-component-tester).
-Install it via:
-
-    npm install -g web-component-tester
-
-Then, you can run your tests on _all_ of your local browsers via:
-
-    wct
-
-#### WCT Tips
-
-`wct -l chrome` will only run tests in chrome.
-
-`wct -p` will keep the browsers alive after test runs (refresh to re-run).
-
-`wct test/some-file.html` will test only the files you specify.
-
-
-## Yeoman support
-
-If you'd like to use Yeoman to scaffold your element that's possible. The official [`generator-polymer`](https://github.com/yeoman/generator-polymer) generator has a [`seed`](https://github.com/yeoman/generator-polymer#seed) subgenerator.
+```
+            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+                    Version 2, December 2004
+ 
+ Copyright (C) 2016 Kevin Jahns <kevin.jahns@rwth-aachen.de>
+ Everyone is permitted to copy and distribute verbatim or modified
+ copies of this license document, and changing it is allowed as long
+ as the name is changed.
+ 
+            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ 
+  0. You just DO WHAT THE FUCK YOU WANT TO.
+ ```
