@@ -1,12 +1,18 @@
-# shared-filesystem
+# P2P *&lt;shared-filesystem&gt;* Web Component
 
 A Polymer element that you can include in your projects to enable your users to share files.
-The cool thing: You don't need to set up anything, because everything works peer-to-peer
+The cool thing: You don't need to set up anything, because everything works **peer-to-peer**
 (well, .. as far as something can be peer-to-peer in the web).
 The clients communicate via WebRTC. Conflicts resolved by [Yjs](https://github.com/y-js/yjs), and files
 are shared via [webtorrent](https://webtorrent.io/).
 Check out [the live demo](http://y-js.org/shared-filesystem/components/shared-filesystem/demo/),
 and read the [documentation](http://y-js.org/shared-filesystem/components/shared-filesystem/).
+
+##### Example:
+
+```
+  <shared-filesystem room="my-namespace"></shared-filesystem>
+```
 
 ![Shared Filesystem Demo](http://goo.gl/4XipWA)
 
