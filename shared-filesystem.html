@@ -154,6 +154,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (this.room == null) {
           throw new Error('You must specify a room property!')
         }
+        var self = this
         this.$.createFolderDialog.fitInto = this.$.main
         this.y = null
         this.folder = null
@@ -171,34 +172,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           share: {
             root: 'Map'
           }
-        }).then((y) => {
-          this.y = y
-          this.folder = y.share.root
-          this._updatePath()
+        }).then(function (y) {
+          self.y = y
+          self.folder = y.share.root
+          self._updatePath()
         })
         this.webtorrent = new WebTorrent()
-        DragDrop('#main', (files) => {
-          files.forEach((file) => {
-            var createFile = () => {
+        DragDrop('#main', function (files) {
+          files.forEach(function (file) {
+            var createFile = function () {
               console.log('Client is seeding ' + torrent.magnetURI)
-              this.createFile(file.name, torrent.magnetURI)
+              self.createFile(file.name, torrent.magnetURI)
             }
-            var torrent = this.webtorrent.seed(file)
+            var torrent = self.webtorrent.seed(file)
             // we don't care if its an error (there are some cases when it is expected - when a file is added twice, webtorrent won't create two duplicate torrents)
             torrent.on('metadata', createFile)
-            var that = this
-            torrent.on('error', (err) => {
+            torrent.on('error', function (err) {
               // I expect here that the error is something like 'Cannot add duplicate torrent 2d0e9fe2a9277b88ff9e7ddd0924fc691325a27d'
               // Where 2d0.. is the infoHash. I think this is the only way to retrieve the non-duplicate (maybe also via torrent._debugid?)
               var infoHash = err.message.slice(29)
-              var torrent = this.webtorrent.torrents.find(function (torrent) {
+              var torrent = self.webtorrent.torrents.find(function (torrent) {
                 return torrent.infoHash === infoHash
               })
               if (torrent == null) {
                 throw new Error('This hack does not work anymore, implement something proper!')
               } else {
                 console.log('Client is seeding (case 2) ' + torrent.magnetURI)
-                this.createFile(file.name, torrent.magnetURI)
+                self.createFile(file.name, torrent.magnetURI)
               }
             })
           })
@@ -226,11 +226,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _fileClicked: function (e) {
         var f = e.model.file
         if (f.type === 'file') {
+          var self = this
           var torrent = this.getTorrent(f.val)
           if (torrent == null) {
-            this.webtorrent.add(f.val, (torrent) => {
-              this._updateFiles()
-              torrent.files[0].getBlobURL(this._updateFiles)
+            this.webtorrent.add(f.val, function (torrent) {
+              self._updateFiles()
+              torrent.files[0].getBlobURL(self._updateFiles)
             })
           } else if (torrent.files.length > 0) {
             var location = torrent.files[0].getBlobURL(function (err, url) {
@@ -254,22 +255,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
       _updatePath: function () {
         if (this.y != null) {
+          var self = this
           this._unobservePath.then(function (del) {del()})
-          this._unobservePath = this.y.share.root.observePath(this.path, (folder) => {
+          this._unobservePath = this.y.share.root.observePath(this.path, function (folder) {
             if (folder instanceof Y.Map.typeDefinition.class) {
-              this.folder.unobserve(this._updateFiles)
-              this.folder = folder
-              this.folder.observe(this._updateFiles)
-              this._updateFiles()
+              self.folder.unobserve(self._updateFiles)
+              self.folder = folder
+              self.folder.observe(self._updateFiles)
+              self._updateFiles()
             }
           })
         }
       },
       _updateFiles: function () {
         if (this.y != null) {
+          var self = this
           Promise.all(this.folder.keys()
-            .map((key) => {
-              var val = this.folder.get(key)
+            .map(function (key) {
+              var val = self.folder.get(key)
               if (val instanceof Promise) {
                 return val.then(function (val) {
                   return Promise.resolve({
@@ -281,7 +284,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 }) 
               } else {
                 var state
-                var torrent = this.getTorrent(val)
+                var torrent = self.getTorrent(val)
                 if (torrent == null) {
                   state = 'off'
                 } else if (torrent.torrentFileBlobURL != null) {
@@ -297,8 +300,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 })
               }
             })
-          ).then((files) => {
-            this._setFiles(files.sort(function (a, b) { return a.name > b.name }))
+          ).then(function (files) {
+            self._setFiles(files.sort(function (a, b) { return a.name > b.name }))
           })
         }
       },
