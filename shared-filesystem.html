@@ -80,17 +80,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </style>
     <div id="main">
       <paper-material elevation="2">
-        <paper-dialog id="createFolderDialog">
-          <paper-input label="Folder name"></paper-input>
+        <paper-dialog id="createDialog">
+          <paper-input id="fileInputElement" multiple label="Create File" type="file" on-change="_fileInputEvent"></paper-input>
+          <paper-input id="folderInputElement" label="Folder name"></paper-input>
           <div class="buttons">
             <paper-button dialog-dismiss autofocus icon="icons:cancel">Close</paper-icon-button>
-            <paper-button dialog-confirm on-tap="_createFolderDialog">Create</paper-button>
+            <paper-button dialog-confirm on-tap="_createDialog">Create</paper-button>
           </div>
         </paper-dialog>
         <paper-toolbar>
           <paper-icon-button on-tap="goBack" icon="icons:arrow-upward" ></paper-icon-button>
           <div class="title"> {{ readablePath }} </div>
-          <paper-icon-button onclick="createFolderDialog.open()" icon="icons:add"></paper-icon-button>
+          <paper-icon-button onclick="createDialog.open()" icon="icons:add"></paper-icon-button>
         </paper-toolbar>
         <div class="files" id="files">
           <div class="overlay"></div>
@@ -147,6 +148,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
          */
         room: String
       },
+      _fileInputEvent: function () {
+        var input = this.$.fileInputElement.inputElement
+        this.createFiles(input.files)
+        input.value = ""
+        this.$.createDialog.close()
+      },
+      createFiles: function (files) {
+        var self = this
+        for(var i=0; i < files.length; i++){
+          (function (file) {
+            var createFile = function () {
+              console.log('Client is seeding ' + torrent.magnetURI)
+              self.createFile(file.name, torrent.magnetURI)
+            }
+            var torrent = this.webtorrent.seed(file)
+            // we don't care if its an error (there are some cases when it is expected - when a file is added twice, webtorrent won't create two duplicate torrents)
+            torrent.on('metadata', createFile)
+            torrent.on('error', function (err) {
+              // I expect here that the error is something like 'Cannot add duplicate torrent 2d0e9fe2a9277b88ff9e7ddd0924fc691325a27d'
+              // Where 2d0.. is the infoHash. I think this is the only way to retrieve the non-duplicate (maybe also via torrent._debugid?)
+              var infoHash = err.message.slice(29)
+              var torrent = self.webtorrent.torrents.find(function (torrent) {
+                return torrent.infoHash === infoHash
+              })
+              if (torrent == null) {
+                throw new Error('This hack does not work anymore, implement something proper!')
+              } else {
+                console.log('Client is seeding (case 2) ' + torrent.magnetURI)
+                self.createFile(file.name, torrent.magnetURI)
+              }
+            })
+          }).call(this, files[i])
+        }
+      },
       _computeReadablePath: function (path) {
         return '/' + path.join('/')
       },
@@ -155,10 +190,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           throw new Error('You must specify a room property!')
         }
         var self = this
-        this.$.createFolderDialog.fitInto = this.$.main
+        this.$.createDialog.fitInto = this.$.main
         this.y = null
         this.folder = null
         this._updateFiles = this._updateFiles.bind(this)
+        this.createFiles = this.createFiles.bind(this)
         this._unobservePath = Promise.resolve(function () {}) // just mocking function behavior
         Y({
           db: {
@@ -178,31 +214,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           self._updatePath()
         })
         this.webtorrent = new WebTorrent()
-        DragDrop('#main', function (files) {
-          files.forEach(function (file) {
-            var createFile = function () {
-              console.log('Client is seeding ' + torrent.magnetURI)
-              self.createFile(file.name, torrent.magnetURI)
-            }
-            var torrent = self.webtorrent.seed(file)
-            // we don't care if its an error (there are some cases when it is expected - when a file is added twice, webtorrent won't create two duplicate torrents)
-            torrent.on('metadata', createFile)
-            torrent.on('error', function (err) {
-              // I expect here that the error is something like 'Cannot add duplicate torrent 2d0e9fe2a9277b88ff9e7ddd0924fc691325a27d'
-              // Where 2d0.. is the infoHash. I think this is the only way to retrieve the non-duplicate (maybe also via torrent._debugid?)
-              var infoHash = err.message.slice(29)
-              var torrent = self.webtorrent.torrents.find(function (torrent) {
-                return torrent.infoHash === infoHash
-              })
-              if (torrent == null) {
-                throw new Error('This hack does not work anymore, implement something proper!')
-              } else {
-                console.log('Client is seeding (case 2) ' + torrent.magnetURI)
-                self.createFile(file.name, torrent.magnetURI)
-              }
-            })
-          })
-        })
+        DragDrop('#main', this.createFiles)
         window.setInterval(this._updateFiles, 100)
       },
       goBack () {
@@ -323,8 +335,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.folder.set(name, Y.Map)
         }
       },
-      _createFolderDialog: function () {
-        var input = this.$.createFolderDialog.querySelector('paper-input')
+      _createDialog: function () {
+        var input = this.$.folderInputElement
         this.createFolder(input.value)
         input.value = ''
       },
