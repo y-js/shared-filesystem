@@ -6,9 +6,11 @@
   ],
   "description": "Shared Filesystem Web Component",
   "keywords": [
+    "file",
+    "share",
     "web-component",
-    "polymer",
-    "seed"
+    "web-components",
+    "polymer"
   ],
   "main": "shared-filesystem.html",
   "license": "MIT",
