@@ -19,7 +19,7 @@
 
 <!--
   # P2P *&lt;shared-filesystem&gt;* Web Component
-  
+
   A Polymer element that you can include in your projects to enable your users to share files.
   The cool thing: You don't need to set up anything, because everything works **peer-to-peer**
   (well, .. as far as something can be peer-to-peer in the web).
@@ -27,9 +27,9 @@
   are shared via [webtorrent](https://webtorrent.io/).
   Check out [the live demo](http://y-js.org/shared-filesystem/components/shared-filesystem/demo/),
   and read the [documentation](http://y-js.org/shared-filesystem/components/shared-filesystem/).
-  
+
   ![Shared Filesystem Demo](http://goo.gl/4XipWA)
-  
+
   Example:
   ```
     <shared-filesystem room="my-namespace"></shared-filesystem>
@@ -245,7 +245,7 @@
                 a.setAttribute('download', torrent.files[0].name)
                 document.body.appendChild(a)
                 a.click()
-                a.remove() 
+                a.remove()
               } else {
                 console.err(err)
               }
@@ -283,7 +283,7 @@
                     type: 'folder',
                     progress: 0
                   })
-                }) 
+                })
               } else {
                 var state
                 var torrent = self.getTorrent(val)
