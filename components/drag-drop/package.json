@@ -1,0 +1,46 @@
+{
+  "name": "drag-drop",
+  "description": "HTML5 drag & drop for humans",
+  "version": "2.13.2",
+  "author": "Feross Aboukhadijeh <feross@feross.org> (http://feross.org/)",
+  "bugs": {
+    "url": "https://github.com/feross/drag-drop/issues"
+  },
+  "dependencies": {
+    "blob-to-buffer": "^1.0.2",
+    "flatten": "^1.0.2",
+    "run-parallel": "^1.0.0"
+  },
+  "devDependencies": {
+    "browserify": "^14.0.0",
+    "ecstatic": "^2.1.0",
+    "html-inline": "^1.2.0",
+    "standard": "*",
+    "tape": "^4.0.0",
+    "uglify-js": "^2.4.15"
+  },
+  "homepage": "https://github.com/feross/drag-drop",
+  "keywords": [
+    "drag",
+    "drop",
+    "dnd",
+    "drag and drop",
+    "drag drop",
+    "html5",
+    "drag & drop",
+    "frontend",
+    "browserify"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/feross/drag-drop.git"
+  },
+  "scripts": {
+    "demo": "html-inline example.html | curl -sT- https://htmlb.in",
+    "test": "standard && tape test/*.js",
+    "example": "npm run build && ecstatic",
+    "build": "browserify -s DragDrop -r ./ | uglifyjs -c warnings=false -m > dragdrop.min.js"
+  }
+}

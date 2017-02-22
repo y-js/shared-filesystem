@@ -1,0 +1,50 @@
+{
+  "name": "shared-filesystem",
+  "authors": [
+    "Kevin Jahns <kevin.jahns@rwth-aachen.de>"
+  ],
+  "description": "Shared Filesystem Web Component",
+  "keywords": [
+    "file",
+    "share",
+    "web-component",
+    "web-components",
+    "polymer"
+  ],
+  "main": "shared-filesystem.html",
+  "license": "MIT",
+  "homepage": "http://y-js.org",
+  "ignore": [
+    "/.*",
+    "/test/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.2.0",
+    "yjs": "^11.1.0",
+    "y-map": "^9.0.1",
+    "paper-item": "^1.2.1",
+    "paper-icon-button": "^1.1.1",
+    "paper-dialog": "^1.0.4",
+    "paper-input": "^1.1.11",
+    "drag-drop": "feross/drag-drop#^2.11.0",
+    "webtorrent": "^0.92.0",
+    "paper-progress": "^1.0.9"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "^4.0.0",
+    "y-memory": "^8.0.5",
+    "y-websockets-client": "^8.0.9",
+    "y-webrtc": "^8.0.4"
+  },
+  "_release": "e171d5e3dc",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "e171d5e3dcd281cc4d6cb0153f0984c7ecf639b6"
+  },
+  "_source": "git://github.com/y-js/shared-filesystem.git",
+  "_target": "master",
+  "_originalSource": "y-js/shared-filesystem",
+  "_direct": true
+}

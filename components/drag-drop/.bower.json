@@ -1,0 +1,14 @@
+{
+  "name": "drag-drop",
+  "homepage": "https://github.com/feross/drag-drop",
+  "version": "2.13.2",
+  "_release": "2.13.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v2.13.2",
+    "commit": "ce5f4dcaaf7630bedc8b710c18497960c84a25e8"
+  },
+  "_source": "git://github.com/feross/drag-drop.git",
+  "_target": "^2.11.0",
+  "_originalSource": "feross/drag-drop"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "webtorrent",
+  "homepage": "https://github.com/feross/webtorrent",
+  "version": "0.92.0",
+  "_release": "0.92.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.92.0",
+    "commit": "37eeb0168869017d10ea60654a120f2895283a61"
+  },
+  "_source": "https://github.com/feross/webtorrent.git",
+  "_target": "^0.92.0",
+  "_originalSource": "webtorrent"
+}

@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>shared-filesystem Demo</title>
+    <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="../shared-filesystem.html">
+    <!-- github badge -->
+    <script async defer id="github-bjs" src="https://buttons.github.io/buttons.js"></script>
+  </head>
+  <body unresolved>
+    <h1> Shared Filesystem <a class="github-button" href="https://github.com/y-js/shared-filesystem" aria-label="Fork y-js/shared-filesystem on GitHub">Fork</a> </h1>
+    <div class="container">
+      <p style="width: ">
+        A demo of the <code>&lt;shared-filesystem&gt;</code>
+        Web Component that you can include in your projects to enable your users to share files.
+        The cool thing: You don't need to set up anything, because everything works <b>peer-to-peer</b> (well, .. as far as something can be peer-to-peer in the web).</p>
+      <p>Share <a id="sharedLink">this link</a> with your friends and drag'n'drop files to the shared file system element! <a href="./">Click here</a> to create a new url. </p>
+    </div>
+    <script>
+      function createRoom (roomname) {
+        window.location.hash = roomname
+        document.querySelector('#sharedLink').setAttribute('href', window.location.href)
+        window.fs = document.createElement('shared-filesystem')
+        fs.setAttribute('room', window.location.hash)
+        document.querySelector('.container').appendChild(window.fs)
+      }
+      if (window.location.hash.length > 0) {
+        createRoom(window.location.hash.slice(1))
+      } else {
+        // create random room
+        createRoom(Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 20))
+      }
+    </script>
+  </body>
+</html>
